@@ -263,8 +263,12 @@ func (*WS) Connect(ctx context.Context, url string, args ...goja.Value) (*WSHTTP
 			socket.handleEvent("pong")
 
 		case readData := <-readDataChan:
+			s := make([]string, len(readData))
+			for i, v := range readData {
+				s[i] = strconv.Itoa(int(v))
+			}
 			socket.msgReceivedTimestamps = append(socket.msgReceivedTimestamps, time.Now())
-			socket.handleEvent("message", rt.ToValue(string(readData)))
+			socket.handleEvent("message", rt.ToValue(strings.Join(s, `,`)))
 
 		case readErr := <-readErrChan:
 			socket.handleEvent("error", rt.ToValue(readErr))
@@ -352,11 +356,15 @@ func (s *Socket) Send(message string) {
 	// support typed arrays.
 	rt := common.GetRuntime(s.ctx)
 
-	writeData := []byte(message)
-	if err := s.conn.WriteMessage(websocket.TextMessage, writeData); err != nil {
+	sa := strings.Split(message, `,`)
+	writeData := make([]byte, len(sa))
+	for i, v := range sa {
+		b, _ := strconv.Atoi(v)
+		writeData[i] = byte(b)
+	}
+	if err := s.conn.WriteMessage(websocket.BinaryMessage, writeData); err != nil {
 		s.handleEvent("error", rt.ToValue(err))
 	}
-
 	s.msgSentTimestamps = append(s.msgSentTimestamps, time.Now())
 }
 

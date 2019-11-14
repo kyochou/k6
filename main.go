@@ -21,9 +21,12 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/loadimpact/k6/cmd"
 )
 
 func main() {
+	fmt.Println(`注意, 这是一个自定义版本, 不要直接从官网下载. 请联系我(develop.kyo@gmail.com)`)
 	cmd.Execute()
 }
